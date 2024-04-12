@@ -11,6 +11,9 @@
 source /usr/bin/gettext.sh
 export TEXTDOMAIN="setup-sophora"
 
+SOPHORA_VERSIONS=( "GNOME Alpha" )
+SOPHORA_STAGES=( "stage4-sophora-gnome-alpha.tar.xz" )
+SOPHORA_STAGES_LOCATION=( "/some/where|https://dl.net.fr/some/were" )
 
 page=0
 
@@ -47,6 +50,33 @@ prepare() {
 prepare_failed() {
     prepare_failed_box
     exit_menu
+}
+
+
+select_sophora_version() {
+    # dialog --radiolist 'radiolist' 15 10 10 'Grapes' 5 'off' 'apple' 2 'off' 'dessert' 3 'off' 'coffee' 4 'on' 
+    sophora_version_choices=()
+    local sophora_version
+    local spacer=$(repeat 10 " ")
+    
+    for key in "${!SOPHORA_VERSIONS[@]}"; do
+        if [[ "${SOPHORA_VERSIONS[@]}" == "GNOME Alpha" ]]; then
+            sophora_version_choices+=("${SOPHORA_VERSIONS[$key]}" "$spacer" "on")
+            continue
+        fi
+
+        sophora_version_choices+=("${SOPHORA_VERSIONS[$key]}" "$spacer" "off")
+    done
+    
+    sophora_version="$(select_sophora_version_box 3>&2 2>&1 1>&3)"
+}
+
+select_sophora_version_box() {
+    local choices=($@)
+    local title=`eval_gettext "Select Sophora version"`
+    local text=`eval_gettext "Choose the Sophora stage to install"`
+    
+    dialog --title "$title" --radiolist "\n$text" 50 50 10 "${sophora_version_choices[@]}"
 }
 
 
@@ -139,6 +169,8 @@ main() {
         3) prepare_box && page=$((page+1));;
 
         4) prepare && prepare_finished_box && page=$((page+1)) || prepare_failed;;
+        
+        5) select_sophora_version && page=$((page+1)) || exit_menu;;
         
         *) exit;;
     esac
