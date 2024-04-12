@@ -37,6 +37,19 @@ exit_menu() {
 }
 
 
+prepare() {
+    #bash /etc/sophora/prepare.sh
+    sleep 2
+    return 0
+}
+
+
+prepare_failed() {
+    prepare_failed_box
+    exit_menu
+}
+
+
 exit_box() {
     local title=`eval_gettext "Exit install"`
     local menu_msg=`eval_gettext "Select what to do"`
@@ -87,6 +100,34 @@ If you understand the risks, please continue."`
 }
 
 
+prepare_box() {
+    local title=`eval_gettext "Prepare the install"`
+    local text=`eval_gettext "Please wait until basic preparations are \
+finished..."`
+    
+    dialog --title "$title" --infobox "\n$text" 50 50
+}
+
+
+prepare_finished_box() {
+    local title=`eval_gettext "Prepare the install"`
+    local text=`eval_gettext "Preparations finished."`
+    
+    dialog --title "$title" --msgbox "\n$text" 50 50
+}
+
+
+prepare_failed_box() {
+    local title=`eval_gettext "Prepare the install"`
+    local text_failed=`eval_gettext "Preparations failed!"`
+    local text_exit=`eval_gettext "Exiting."`
+    
+    dialog --title "$title" --colors --msgbox \
+    "\n\Z1\Zb\Zr$text_failed\Zn\n\n$text_exit" 50 50
+}
+
+
+
 main() {
     case $page in
         0) welcome_box && page=$((page+1)) || exit_menu;;
@@ -94,6 +135,10 @@ main() {
         1) important_sophora_is_alpha_box && page=$((page+1)) || exit_menu;;
         
         2) important_installer_is_alpha_box && page=$((page+1))|| exit_menu;;
+        
+        3) prepare_box && page=$((page+1));;
+
+        4) prepare && prepare_finished_box && page=$((page+1)) || prepare_failed;;
         
         *) exit;;
     esac
