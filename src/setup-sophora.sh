@@ -60,9 +60,40 @@ Sophora Linux team will not take the responsibility if you lose data!"`
 }
 
 
+important_sophora_is_alpha_box() {
+    local title=`eval_gettext "Important note!"`
+    local text=`eval_gettext "Please note that Sophora Linux is still in alpha.
+Please do not use it as your main operating system as things can break.
+
+If you understand the risks, please continue."`
+    
+    dialog --title "\Z1\Zb$title\Zn" --no-label "Exit" --yes-label "Continue" \
+    --colors --yesno "\n$text" 50 50
+}
+
+
+important_installer_is_alpha_box() {
+    local title=`eval_gettext "Important note!"`
+    local text=`eval_gettext "Please note that Sophora Linux install scripts \
+are still in alpha. Unexpected things can append during the installation \
+process.
+
+Please do not use it on your main machine
+
+If you understand the risks, please continue."`
+    
+    dialog --title "\Z1\Zb$title\Zn" --no-label "Exit" --yes-label "Continue" \
+    --colors --yesno "\n$text" 50 50
+}
+
+
 main() {
     case $page in
         0) welcome_box && page=$((page+1)) || exit_menu;;
+
+        1) important_sophora_is_alpha_box && page=$((page+1)) || exit_menu;;
+        
+        2) important_installer_is_alpha_box && page=$((page+1))|| exit_menu;;
         
         *) exit;;
     esac
