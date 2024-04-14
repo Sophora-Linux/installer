@@ -69,6 +69,50 @@ select_sophora_version() {
     sophora_version="$(select_sophora_version_box 3>&2 2>&1 1>&3)"
 }
 
+
+get_disks() {
+    local DISKS_NAMES=(`lsblk -p -l -n -o NAME,TYPE | awk '{if ($2 =="disk") print $1}'`)
+    local DISKS_SIZES=(`lsblk -p -l -n -o SIZE,TYPE | awk '{if ($2 =="disk") print $1}'`)
+    local DISKS_MODELS=()
+    disks_names=()
+    disks_sizes=()
+    disks_model=()
+    
+    for disk in "${DISKS_NAMES[@]}"; do
+        disk_id="${disk/\/dev\//}"
+        DISKS_MODELS+=("`cat "/sys/class/block/$disk_id/device/model" | \
+        awk '$1=$1'`")
+    done
+
+    for disk_number in "${!DISKS_NAMES[@]}"; do
+        if [[ "${DISKS_SIZES[$disk_number]}" == "0B" ]]; then
+            continue
+        fi
+
+        disks_names+=("${DISKS_NAMES[$disk_number]}")
+        disks_sizes+=("${DISKS_SIZES[$disk_number]}")
+        disks_models+=("${DISKS_MODELS[$disk_number]}")
+    done
+}
+
+
+select_install_disk() {
+    install_disk_choices=()
+
+    get_disks
+
+    for disk_number in "${!disks_names[@]}"; do
+        install_disk_choices+=("${disks_names[$disk_number]}" \
+        "${disks_sizes[$disk_number]}  ${disks_models[$disk_number]}" "off")
+    done
+    
+    # Select the first disk
+    install_disk_choices[2]="on"
+    
+    INSTALL_DISK="$(select_install_disk_box 3>&2 2>&1 1>&3)"
+}
+
+
 select_sophora_version_box() {
     local choices=($@)
     local title=`eval_gettext "Select Sophora version"`
@@ -155,6 +199,14 @@ prepare_failed_box() {
 }
 
 
+select_install_disk_box() {
+    local title=`eval_gettext "Select the disk"`
+    local text=`eval_gettext "Choose the disk to intall Sophora into"`
+    
+    dialog --title "$title" --radiolist "\n$text" 50 50 10 \
+    "${install_disk_choices[@]}"
+}
+
 
 main() {
     case $page in
@@ -169,6 +221,8 @@ main() {
         4) prepare && prepare_finished_box && page=$((page+1)) || prepare_failed;;
         
         5) select_sophora_version && page=$((page+1)) || exit_menu;;
+        
+        6) select_install_disk && page=$((page+1)) || exit_menu;;
         
         *) exit;;
     esac
