@@ -54,7 +54,6 @@ prepare_failed() {
 
 select_sophora_version() {
     sophora_version_choices=()
-    local sophora_version
     local spacer=$(repeat 10 " ")
     
     for key in "${!SOPHORA_VERSIONS[@]}"; do
@@ -66,7 +65,7 @@ select_sophora_version() {
         sophora_version_choices+=("${SOPHORA_VERSIONS[$key]}" "$spacer" "off")
     done
     
-    sophora_version="$(select_sophora_version_box 3>&2 2>&1 1>&3)"
+    SOPHORA_VERSION="$(select_sophora_version_box 3>&2 2>&1 1>&3)"
 }
 
 
